@@ -4,8 +4,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
-	"runtime"
-	"sync"
 )
 
 var CATEGORY int = 0
@@ -14,7 +12,6 @@ var numberOfCols int = 0
 
 func main() {
 	filePath := "bisco4mill.csv"
-	numGoroutines := runtime.NumCPU()
 
 	// Open the CSV file
 	file, err := os.Open(filePath)
@@ -44,38 +41,7 @@ func main() {
 	numberOfCols = len(records[0])
 	records = records[1:]
 
-	// Set GOMAXPROCS to the number of available CPU cores
-	runtime.GOMAXPROCS(runtime.NumCPU())
-
-	// Create a WaitGroup to wait for all goroutines to finish
-	var wg sync.WaitGroup
-
-	// Increment the WaitGroup counter for each goroutine
-	wg.Add(numGoroutines)
-
-	// Calculate the size of each portion
-	portionSize := len(records) / numGoroutines
-
-	// Create goroutines for parallel string processing
-	for i := 0; i < numGoroutines; i++ {
-		startIndex := i * portionSize
-		endIndex := (i + 1) * portionSize
-		if i == numGoroutines-1 {
-			endIndex = len(records)
-		}
-		// fmt.Println("startIndex:", startIndex, "endIndex:", endIndex)
-
-		go func(id int, startIndex int, endIndex int, records [][]string) {
-			// Defer the decrement of the WaitGroup counter
-			defer wg.Done()
-
-			// Process the portion of the array
-			processStrings(id, startIndex, endIndex, records)
-		}(i, startIndex, endIndex, records)
-	}
-
-	// Wait for all goroutines to finish
-	wg.Wait()
+	processStrings(0, 0, len(records), records)
 
 }
 
